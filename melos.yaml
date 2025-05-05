@@ -1,0 +1,4 @@
+name: geek_toolkits
+packages:
+  - apps/*
+  - packages/*
