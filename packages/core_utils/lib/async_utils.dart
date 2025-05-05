@@ -42,43 +42,48 @@ class Throttler {
   }
 }
 
-/// 重试机制
-Future<T> retry<T>(
-  Future<T> Function() task, {
-  int retries = 3,
-  Duration delay = const Duration(milliseconds: 500),
-  bool Function(Exception)? retryIf,
-}) async {
-  int attempt = 0;
-  while (true) {
-    try {
-      return await task();
-    } catch (e) {
-      attempt++;
-      if (e is Exception &&
-          attempt <= retries &&
-          (retryIf == null || retryIf(e))) {
-        await Future.delayed(delay);
-        continue;
+class AsyncUtils {
+  /// 重试机制
+  static Future<T> retry<T>(
+    Future<T> Function() task, {
+    int retries = 3,
+    Duration delay = const Duration(milliseconds: 500),
+    bool Function(Exception)? retryIf,
+  }) async {
+    int attempt = 0;
+    while (true) {
+      try {
+        return await task();
+      } catch (e) {
+        attempt++;
+        if (e is Exception &&
+            attempt <= retries &&
+            (retryIf == null || retryIf(e))) {
+          await Future.delayed(delay);
+          continue;
+        }
+        rethrow;
       }
-      rethrow;
     }
   }
-}
 
-/// 延迟执行
-Future<void> delay(Duration duration, [void Function()? action]) async {
-  await Future.delayed(duration);
-  action?.call();
-}
+  /// 延迟执行
+  static Future<void> delay(
+    Duration duration, [
+    void Function()? action,
+  ]) async {
+    await Future.delayed(duration);
+    action?.call();
+  }
 
-/// 超时处理
-Future<T?> timeout<T>(
-  Future<T> future, {
-  required Duration duration,
-  T? onTimeout(),
-}) {
-  return future.timeout(duration, onTimeout: onTimeout);
+  /// 超时处理
+  static Future<T?> timeout<T>(
+    Future<T> future, {
+    required Duration duration,
+    FutureOr<T> Function()? onTimeout,
+  }) {
+    return future.timeout(duration, onTimeout: onTimeout);
+  }
 }
 
 
