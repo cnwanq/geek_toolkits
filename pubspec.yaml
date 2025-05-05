@@ -3,3 +3,6 @@ environment:
   sdk: ">=3.7.2 <4.0.0"
 dev_dependencies:
   melos: ^6.3.2
+dependencies:
+  device_info_plus: ^11.4.0
+  package_info_plus: ^8.3.0
