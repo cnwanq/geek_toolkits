@@ -5,3 +5,4 @@ export 'collection_utils.dart';
 export 'validate_utils.dart';
 export 'async_utils.dart';
 export 'device_utils.dart';
+export 'logger.dart';
