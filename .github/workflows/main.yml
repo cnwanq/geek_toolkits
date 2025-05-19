@@ -1,0 +1,123 @@
+name: Notify Robots
+on:
+  push: # 所有分支的 push 事件均触发
+    branches-ignore: [] # 不排除任何分支
+jobs:
+  send-notification:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 检出代码（必须步骤）
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 设置 Python 环境（用于执行脚本）
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3. 安装依赖库（requests用于HTTP请求）
+      - name: Install dependencies
+        run: pip install requests
+
+      # 4. 发送钉钉通知
+      # - name: Notify DingTalk
+      #   env:
+      #     DINGTALK_WEBHOOK: https://oapi.dingtalk.com/robot/send?access_token=1fa397a9958ca9a2e6859689cc02455e473eaf37fbea98331fed4330e30e594b
+      #     DINGTALK_SECRET: SEC47e40a9fdb7116a97088a1047cb8d99ade35ab4d2c30aa18d61e3ff4402c4cf2
+      #   run: |
+      #     python3 -c "
+      #     import requests, json, os, time, hashlib, hmac, base64
+          
+      #     # 获取提交信息
+      #     commit_msg = \"\"\"${{ github.event.head_commit.message }}\"\"\"
+      #     author = \"${{ github.actor }}\"
+          
+      #     # 生成钉钉签名
+      #     timestamp = str(int(time.time() * 1000))
+      #     secret = os.getenv('DINGTALK_SECRET')
+      #     string_to_sign = f'{timestamp}\\n{secret}'
+      #     hmac_code = hmac.new(
+      #         secret.encode(),
+      #         string_to_sign.encode(),
+      #         digestmod=hashlib.sha256
+      #     ).digest()
+      #     sign = base64.b64encode(hmac_code).decode()
+          
+      #     # 构造消息体
+      #     payload = {
+      #         'msgtype': 'markdown',
+      #         'markdown': {
+      #             'title': 'GitHub Commit',
+      #             'text': f'**提交者**: {author}\\n\\n**内容**: {commit_msg}'
+      #         }
+      #     }
+          
+      #     # 发送请求并调试
+      #     webhook = os.getenv('DINGTALK_WEBHOOK')
+      #     webhook = f'{webhook}&timestamp={timestamp}&sign={sign}'
+      #     response = requests.post(webhook, json=payload)
+      #     print('钉钉响应状态码:', response.status_code)
+      #     print('钉钉响应内容:', response.text)
+          "
+      # 5. 发送飞书通知
+      - name: Notify Feishu
+        env:
+          FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
+          FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm  # 若开启加签需配置
+        run: |
+          python3 -c '
+          import requests, json, os, time, hashlib, hmac, base64, re, sys
+
+          def escape_markdown(text):
+              # 转义 Markdown 特殊字符
+              special_chars = ["*", "_", "#", ">", "|", "`", "~", "[", "]", "(", ")", "!"]
+              for char in special_chars:
+                  text = text.replace(char, "\\" + char)
+              return text
+
+          # 检查环境变量
+          webhook_url = os.getenv("FEISHU_WEBHOOK")
+          if not webhook_url:
+              print("错误: FEISHU_WEBHOOK 环境变量未设置")
+              sys.exit(1)
+
+          # 获取并转义提交信息
+          commit_msg = """${{ github.event.head_commit.message }}"""
+          escaped_msg = escape_markdown(commit_msg)
+          
+          # 生成飞书签名（若启用）
+          timestamp = str(int(time.time()))
+          sign = hmac.new(
+              os.getenv("FEISHU_SIGN", "").encode(), 
+              (timestamp + "\n" + os.getenv("FEISHU_SIGN", "")).encode(), 
+              digestmod=hashlib.sha256
+          ).digest()
+          sign_b64 = base64.b64encode(sign).decode()
+
+          # 构造消息体
+          payload = {
+              "msg_type": "interactive",
+              "card": {
+                  "elements": [{
+                      "tag": "div",
+                      "text": {"content": escaped_msg, "tag": "lark_md"}
+                  }],
+                  "header": {
+                      "title": {"content": f"来自 ${{ github.actor }} 的提交", "tag": "plain_text"}
+                  }
+              },
+              "timestamp": timestamp,
+              "sign": sign_b64
+          }
+
+          try:
+              print(f"正在发送请求到飞书...")
+              response = requests.post(webhook_url, json=payload)
+              print(f"飞书响应状态码: {response.status_code}")
+              print(f"飞书响应内容: {response.text}")
+              response.raise_for_status()
+          except requests.exceptions.RequestException as e:
+              print(f"发送请求时出错: {str(e)}")
+              sys.exit(1)
+          '
