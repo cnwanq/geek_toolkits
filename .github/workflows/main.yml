@@ -59,12 +59,12 @@ jobs:
       #     response = requests.post(webhook, json=payload)
       #     print('钉钉响应状态码:', response.status_code)
       #     print('钉钉响应内容:', response.text)
-          "
+      #     "
       # 5. 发送飞书通知
       - name: Notify Feishu
         env:
           FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
-          FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm  # 若开启加签需配置
+          FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm
         run: |
           python3 -c '
           import requests, json, os, time, hashlib, hmac, base64, re, sys
