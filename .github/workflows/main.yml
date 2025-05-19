@@ -86,14 +86,16 @@ jobs:
           commit_msg = """${{ github.event.head_commit.message }}"""
           escaped_msg = escape_markdown(commit_msg)
           
-          # 生成飞书签名（若启用）
+          # 生成飞书签名
           timestamp = str(int(time.time()))
-          sign = hmac.new(
-              os.getenv("FEISHU_SIGN", "").encode(), 
-              (timestamp + "\n" + os.getenv("FEISHU_SIGN", "")).encode(), 
+          secret = os.getenv("FEISHU_SIGN", "")
+          string_to_sign = f"{timestamp}\n{secret}"
+          hmac_code = hmac.new(
+              secret.encode(),
+              string_to_sign.encode(),
               digestmod=hashlib.sha256
           ).digest()
-          sign_b64 = base64.b64encode(sign).decode()
+          sign = base64.b64encode(hmac_code).decode()
 
           # 构造消息体
           payload = {
@@ -106,13 +108,13 @@ jobs:
                   "header": {
                       "title": {"content": f"来自 ${{ github.actor }} 的提交", "tag": "plain_text"}
                   }
-              },
-              "timestamp": timestamp,
-              "sign": sign_b64
+              }
           }
 
           try:
               print(f"正在发送请求到飞书...")
+              print(f"时间戳: {timestamp}")
+              print(f"签名: {sign}")
               response = requests.post(webhook_url, json=payload)
               print(f"飞书响应状态码: {response.status_code}")
               print(f"飞书响应内容: {response.text}")
