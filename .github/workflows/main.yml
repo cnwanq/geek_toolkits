@@ -99,7 +99,9 @@ jobs:
           print(f"签名密钥: {secret}")
           
           # 按照飞书官方文档生成签名
-          string_to_sign = timestamp + "\n" + secret
+          string_to_sign = f"{timestamp}\n{secret}"
+          print(f"\n签名字符串（十六进制）: {string_to_sign.encode('utf-8').hex()}")
+          
           hmac_code = hmac.new(
               secret.encode("utf-8"),
               string_to_sign.encode("utf-8"),
@@ -120,7 +122,7 @@ jobs:
                   }
               }
           }
- 
+
           try:
               # 将签名和时间戳添加到 URL
               url_parts = list(urllib.parse.urlparse(webhook_url))
