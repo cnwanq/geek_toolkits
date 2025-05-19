@@ -67,20 +67,6 @@ jobs:
           FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
           FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm
         run: |
-          # 获取标准时间
-          echo "同步前时间:"
-          date
-          
-          # 使用 curl 获取标准时间
-          TIMESTAMP=$(curl -s http://worldtimeapi.org/api/timezone/UTC | grep -o '"unixtime":[0-9]*' | cut -d':' -f2)
-          if [ ! -z "$TIMESTAMP" ]; then
-              sudo date -s "@$TIMESTAMP"
-              echo "同步后时间:"
-              date
-          else
-              echo "警告: 无法获取标准时间，将使用系统时间"
-          fi
-          
           python3 -c '
           import requests, json, os, time, hashlib, hmac, base64, re, sys, urllib.parse, datetime
 
@@ -102,21 +88,16 @@ jobs:
           escaped_msg = escape_markdown(commit_msg)
           
           # 生成飞书签名
-          current_time = datetime.datetime.now(datetime.timezone.utc)
-          timestamp = str(int(current_time.timestamp()))
+          timestamp = str(int(time.time()))
           secret = os.getenv("FEISHU_SIGN", "")
           
           print("调试信息:")
-          print("当前 UTC 时间: " + current_time.strftime("%Y-%m-%d %H:%M:%S %Z"))
           print(f"当前时间戳: {timestamp}")
           print(f"签名密钥长度: {len(secret)}")
           print(f"签名密钥: {secret}")
           
           # 按照飞书官方文档生成签名
           string_to_sign = f"{timestamp}\n{secret}"
-          hex_string = string_to_sign.encode("utf-8").hex()
-          print(f"\n签名字符串（十六进制）: {hex_string}")
-          
           hmac_code = hmac.new(
               secret.encode("utf-8"),
               string_to_sign.encode("utf-8"),
@@ -126,15 +107,9 @@ jobs:
 
           # 构造消息体
           payload = {
-              "msg_type": "interactive",
-              "card": {
-                  "elements": [{
-                      "tag": "div",
-                      "text": {"content": escaped_msg, "tag": "lark_md"}
-                  }],
-                  "header": {
-                      "title": {"content": f"来自 ${{ github.actor }} 的提交", "tag": "plain_text"}
-                  }
+              "msg_type": "text",
+              "content": {
+                  "text": escaped_msg
               }
           }
 
@@ -151,7 +126,7 @@ jobs:
 
               print(f"\n请求信息:")
               print(f"时间戳: {timestamp}")
-              print(f"签名字符串: {repr(string_to_sign)}")  # 使用 repr 显示实际的换行符
+              print(f"签名字符串: {repr(string_to_sign)}")
               print(f"签名结果: {sign}")
               print(f"完整 URL: {final_url}")
               
