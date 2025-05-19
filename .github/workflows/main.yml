@@ -100,7 +100,7 @@ jobs:
           
           # 按照飞书官方文档生成签名
           string_to_sign = f"{timestamp}\n{secret}"
-          print(f"\n签名字符串（十六进制）: {string_to_sign.encode('utf-8').hex()}")
+          print(f"\n签名字符串（十六进制）: {string_to_sign.encode(\"utf-8\").hex()}")
           
           hmac_code = hmac.new(
               secret.encode("utf-8"),
