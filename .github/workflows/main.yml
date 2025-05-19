@@ -65,7 +65,7 @@ jobs:
         env:
           TZ: Asia/Shanghai
           FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
-          FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm
+          FEISHU_SIGN: dGtFc615enbudNF1c7ewg
         run: |
           python3 -c '
           import requests, json, os, time, hashlib, hmac, base64, re, sys, urllib.parse, datetime
