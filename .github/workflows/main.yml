@@ -93,7 +93,7 @@ jobs:
           secret = os.getenv("FEISHU_SIGN", "")
           
           print("调试信息:")
-          print(f"当前时间: {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+          print("当前时间: " + current_time.strftime("%Y-%m-%d %H:%M:%S"))
           print(f"当前时间戳: {timestamp}")
           print(f"签名密钥长度: {len(secret)}")
           print(f"签名密钥: {secret}")
