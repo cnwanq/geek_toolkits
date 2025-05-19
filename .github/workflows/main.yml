@@ -97,7 +97,7 @@ jobs:
           print(f"签名密钥: {secret}")
           
           # 按照飞书官方文档生成签名
-          string_to_sign = f"{timestamp}\n{secret}"
+          string_to_sign = timestamp + "\n" + secret
           hmac_code = hmac.new(
               secret.encode("utf-8"),
               string_to_sign.encode("utf-8"),
@@ -132,7 +132,7 @@ jobs:
 
               print(f"\n请求信息:")
               print(f"时间戳: {timestamp}")
-              print(f"签名字符串: {string_to_sign}")
+              print(f"签名字符串: {repr(string_to_sign)}")  # 使用 repr 显示实际的换行符
               print(f"签名结果: {sign}")
               print(f"完整 URL: {final_url}")
               
