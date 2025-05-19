@@ -63,10 +63,17 @@ jobs:
       # 5. 发送飞书通知
       - name: Notify Feishu
         env:
-          TZ: Asia/Shanghai
+          TZ: UTC
           FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
-          FEISHU_SIGN: dGtFc615enbudNF1c7ewg
+          FEISHU_SIGN: i9TdJRXcVUaObfiG3IFZm
         run: |
+          # 同步时间
+          sudo apt-get update
+          sudo apt-get install -y ntp
+          sudo service ntp stop
+          sudo ntpdate time.apple.com
+          sudo service ntp start
+          
           python3 -c '
           import requests, json, os, time, hashlib, hmac, base64, re, sys, urllib.parse, datetime
 
@@ -88,12 +95,12 @@ jobs:
           escaped_msg = escape_markdown(commit_msg)
           
           # 生成飞书签名
-          current_time = datetime.datetime.now()
+          current_time = datetime.datetime.now(datetime.timezone.utc)
           timestamp = str(int(current_time.timestamp()))
           secret = os.getenv("FEISHU_SIGN", "")
           
           print("调试信息:")
-          print("当前时间: " + current_time.strftime("%Y-%m-%d %H:%M:%S"))
+          print("当前 UTC 时间: " + current_time.strftime("%Y-%m-%d %H:%M:%S %Z"))
           print(f"当前时间戳: {timestamp}")
           print(f"签名密钥长度: {len(secret)}")
           print(f"签名密钥: {secret}")
