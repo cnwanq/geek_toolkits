@@ -72,12 +72,14 @@ jobs:
           date
           
           # 使用 curl 获取标准时间
-          curl -s http://worldtimeapi.org/api/timezone/UTC > time.json
-          TIMESTAMP=$(jq -r '.unixtime' time.json)
-          sudo date -s "@$TIMESTAMP"
-          
-          echo "同步后时间:"
-          date
+          TIMESTAMP=$(curl -s http://worldtimeapi.org/api/timezone/UTC | grep -o '"unixtime":[0-9]*' | cut -d':' -f2)
+          if [ ! -z "$TIMESTAMP" ]; then
+              sudo date -s "@$TIMESTAMP"
+              echo "同步后时间:"
+              date
+          else
+              echo "警告: 无法获取标准时间，将使用系统时间"
+          fi
           
           python3 -c '
           import requests, json, os, time, hashlib, hmac, base64, re, sys, urllib.parse, datetime
