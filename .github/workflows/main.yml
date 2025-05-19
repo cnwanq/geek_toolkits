@@ -33,4 +33,9 @@ jobs:
         env:
           FEISHU_WEBHOOK: https://open.feishu.cn/open-apis/bot/v2/hook/ed322339-956c-4c86-8467-7a57755bdfc1
         run: |
-          python3 .github/workflows/feishu_notify.py "${{ github.event.head_commit.message }}"
+          python3 .github/workflows/feishu_notify.py \
+            "${{ github.event.head_commit.message }}" \
+            "${{ github.repository }}" \
+            "${{ github.ref_name }}" \
+            "${{ github.event.head_commit.url }}" \
+            "${{ github.actor }}"
